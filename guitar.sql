@@ -122,7 +122,7 @@ CREATE OR REPLACE PACKAGE GUITAR.PK_SCALES IS
     V_PENTA_MINOR T_SCALE := T_SCALE(0,3,2,2,3,2);
     
     V_SCALES T_SCALES := T_SCALES(V_MAJOR, V_MINOR, V_BLUES, V_FLAMENCO, V_PENTA_MAJOR, V_PENTA_MINOR);
-    V_SCALE_NAMES T_SCALE_NAMES := T_SCALE_NAMES('Major', 'Minor', 'Blues', 'FLamenco', 'Penta major', 'Penta minor');
+    V_SCALE_NAMES T_SCALE_NAMES := T_SCALE_NAMES('Major', 'Minor', 'Blues', 'Flamenco', 'Penta major', 'Penta minor');
 END PK_SCALES;
 /
 
@@ -168,8 +168,11 @@ CREATE OR REPLACE TYPE BODY GUITAR.OCTAVE IS
     BEGIN
         SELF.V_OCTAVE := p_octave;
         SELF.V_SOUNDS := T_SOUNDS();
-        SELF.V_SOUNDS(0) := Sound(p_sound => PK_SOUNDS.C, p_octave => p_octave);
-        SELF.V_SOUNDS(1) := Sound(p_sound => PK_SOUNDS.CISZ, p_octave => p_octave);
+        FOR I IN 1..SELF.V_SOUNDS.LIMIT LOOP
+            SELF.V_SOUNDS.EXTEND;
+        END LOOP;
+        SELF.V_SOUNDS(1) := Sound(p_sound => PK_SOUNDS.C, p_octave => p_octave);
+        SELF.V_SOUNDS(2) := Sound(p_sound => PK_SOUNDS.CISZ, p_octave => p_octave);
         SELF.V_SOUNDS(3) := Sound(p_sound => PK_SOUNDS.D, p_octave => p_octave);
         SELF.V_SOUNDS(4) := Sound(p_sound => PK_SOUNDS.DISZ, p_octave => p_octave);
         SELF.V_SOUNDS(5) := Sound(p_sound => PK_SOUNDS.E, p_octave => p_octave);
@@ -180,10 +183,42 @@ CREATE OR REPLACE TYPE BODY GUITAR.OCTAVE IS
         SELF.V_SOUNDS(10) := Sound(p_sound => PK_SOUNDS.A, p_octave => p_octave);
         SELF.V_SOUNDS(11) := Sound(p_sound => PK_SOUNDS.AISZ, p_octave => p_octave);
         SELF.V_SOUNDS(12) := Sound(p_sound => PK_SOUNDS.B, p_octave => p_octave);
+        RETURN;
     END;
 END;
 /
 
 CREATE OR REPLACE PUBLIC SYNONYM OCTAVE FOR GUITAR.OCTAVE;
 /
+
+
+CREATE OR REPLACE TYPE GUITAR.T_OCTAVES IS VARRAY(8) OF OCTAVE;
+/
+
+CREATE OR REPLACE PUBLIC SYNONYM T_OCTAVES FOR GUITAR.T_OCTAVES;
+/
+
+
+CREATE  OR REPLACE TYPE GUITAR.OCTAVE_LIST AS OBJECT (
+    V_OCTAVE_LIST T_OCTAVES,
+    CONSTRUCTOR FUNCTION OCTAVE_LIST RETURN SELF AS RESULT
+);
+/
+
+CREATE OR REPLACE TYPE BODY GUITAR.OCTAVE_LIST IS
+    CONSTRUCTOR FUNCTION OCTAVE_LIST RETURN SELF AS RESULT IS
+    BEGIN
+        SELF.V_OCTAVE_LIST := T_OCTAVES();
+        FOR I IN 1..8 LOOP
+            SELF.V_OCTAVE_LIST.EXTEND;
+            SELF.V_OCTAVE_LIST(I) := OCTAVE(I);
+        END LOOP;
+        RETURN;
+    END;
+END;
+/
+
+CREATE OR REPLACE PUBLIC SYNONYM OCTAVE_LIST FOR GUITAR.OCTAVE_LIST;
+/
+
 
